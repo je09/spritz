@@ -54,8 +54,13 @@ class TestUserListApiView(TestCase):
         response = client.get(reverse('api_user:user_info'), data={'vk_id': 123123123})
 
         # get data from ORM
-        clients = User.objects.get(vk_id=371449298)
+        clients = User.objects.get(vk_id=123123123)
         clients_serialized = UserSerializer(clients)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, clients_serialized.data)
+
+    def test_empty_args(self):
+        response = client.get(reverse('api_user:user_info'))
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
