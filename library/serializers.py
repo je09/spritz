@@ -21,7 +21,7 @@ class BookViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Book
-        fields = ['vk_id', 'unique_id', 'author', 'title', 'page', 'text']
+        fields = ('vk_id', 'unique_id', 'author', 'title', 'page', 'text')
         extra_kwargs = {
             'vk_id': {'read_only': True},
             'text': {'read_only': True},
@@ -29,6 +29,27 @@ class BookViewSerializer(serializers.ModelSerializer):
             'author': {'read_only': True},
             'title': {'read_only': True},
         }
+
+
+class BookCreateSerializer(serializers.ModelSerializer):
+    """
+    Deserializer for user requested EPUB-book
+
+    Get requested vk_id and file, parse the file to fill:
+    • title
+    • author
+    Set unique_id automatically.
+    """
+
+    file = serializers.FileField(required=True)
+
+    def update(self, instance, validated_data):
+        # TODO: Parse ebook
+        pass
+
+    class Meta:
+        model = Book
+        fields = ('vk_id', 'file')
 
 
 class LibraryProgressModelSerializer(serializers.ModelSerializer):

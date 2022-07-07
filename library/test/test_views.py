@@ -8,6 +8,8 @@ from library.models import Book
 from library.serializers import BookViewSerializer
 from users.models import User
 
+CONTENT_TYPE_JSON_APPLICATION = 'application/json'
+
 client = Client()
 
 
@@ -99,10 +101,12 @@ class TestLibraryModelViewSet(TestCase):
     def test_delete(self):
         """Delete book correctly"""
 
-        book = Book.objects.all().first()
+        book = Book.objects.all().last()
         book_id = book.unique_id
 
-        request = client.delete(reverse('api_library:library_list_control'), data={'book_id': book_id})
+        request = client.delete(reverse('api_library:library_list_control'),
+                                content_type=CONTENT_TYPE_JSON_APPLICATION,
+                                data={'book_id': book_id})
 
         self.assertEqual(request.status_code, status.HTTP_200_OK)
 
@@ -114,6 +118,8 @@ class TestLibraryModelViewSet(TestCase):
         """Delete book with wrong book_id"""
 
         RANDOM_UUID = 'f0653e13-aa84-4632-8f59-cc47141ea8cd'
-        request = client.delete(reverse('api_library:library_list_control'), data={'book_id': RANDOM_UUID})
+        request = client.delete(reverse('api_library:library_list_control'),
+                                content_type=CONTENT_TYPE_JSON_APPLICATION,
+                                data={'book_id': RANDOM_UUID})
 
         self.assertEqual(request.status_code, status.HTTP_204_NO_CONTENT)

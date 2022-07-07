@@ -1,15 +1,16 @@
+from django.http import QueryDict
 from rest_framework.generics import (
     RetrieveAPIView,
     CreateAPIView,
     DestroyAPIView
 )
-from rest_framework.viewsets import ModelViewSet
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.request import Request
 from library.serializers import (
     BookViewSerializer,
-    LibraryProgressModelSerializer
+    BookCreateSerializer
 )
 from library.models import Book
 
@@ -48,7 +49,24 @@ class LibraryRetrieveViewSet(
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
-        pass
+        """Send user vk_id and book file"""
+        book_serialized = BookCreateSerializer(data=request.data)
+        if not book_serialized.is_valid():
+            return Response(BookViewSerializer(None).data, status=status.HTTP_204_NO_CONTENT)
 
-    def delete(self, request, *args, **kwargs):
-        pass
+        book_serialized.save()
+
+        return Response(book_serialized.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request: Request, *args, **kwargs):
+        """Delete book by book_id"""
+        book_id = request.data.get('book_id')
+        if not book_id:
+            return Response(BookViewSerializer(None).data, status=status.HTTP_204_NO_CONTENT)
+
+        book = Book.objects.all().filter(unique_id=book_id)
+        if not book:
+            return Response(BookViewSerializer(None).data, status=status.HTTP_204_NO_CONTENT)
+
+        book.delete()
+        return Response(BookViewSerializer(None).data, status=status.HTTP_200_OK)
