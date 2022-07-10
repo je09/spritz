@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from library.models import Book
-from library.services import parse_book
+from library.services import EpubParser
 
 
 class BookViewSerializer(serializers.ModelSerializer):
@@ -17,7 +17,7 @@ class BookViewSerializer(serializers.ModelSerializer):
 
     def get_page(self, obj) -> int:
         """Get page from request"""
-        return 1
+        return obj.pk
 
     class Meta:
         model = Book
@@ -42,15 +42,31 @@ class BookCreateSerializer(serializers.ModelSerializer):
     """
 
     file = serializers.FileField(required=True)
+    title = serializers.CharField(max_length=256)
+    author = serializers.CharField(max_length=256)
 
-    def update(self, instance, validated_data):
-        # TODO: Parse ebook
-        pass
+    def to_internal_value(self, data):
+        if 'file' not in data:
+            return super().to_internal_value(data)
+
+        if data['file'].content_type == 'application/epub+zip':
+            path = data['file'].temporary_file_path()
+            book = EpubParser(path, parse_text=False)
+            data['title'] = book.title
+            data['author'] = book.author
+
+        return super().to_internal_value(data)
 
     class Meta:
         model = Book
-        fields = ('vk_id', 'file')
-
+        fields = ('unique_id', 'vk_id', 'file', 'title', 'author')
+        extra_kwargs = {
+            'file': {'write_only': True},
+            'vk_id': {'write_only': True},
+            'unique_id': {'read_only': True},
+            'title': {'read_only': True},
+            'author': {'read_only': True},
+        }
 
 class LibraryProgressModelSerializer(serializers.ModelSerializer):
 
