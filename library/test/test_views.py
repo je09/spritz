@@ -94,13 +94,13 @@ class TestLibraryModelViewSet(TestCase):
         self.assertEqual(book.vk_id, User.objects.get(vk_id=123123213))
         self.assertTrue(book.file)
 
-    def test_post_wrong_vk_id(self):
+    def test_post_unregistered_vk_id(self):
         """Send book with non-existing vk_id param"""
 
         with open('library/test/test_files/accessible_epub_3.epub', 'rb') as file:
             request = client.post(reverse('api_library:library_list_control'), data={'vk_id': 123, 'file': file})
 
-        self.assertEqual(request.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(request.status_code, status.HTTP_201_CREATED)
 
     def test_post_empty_file(self):
         """Send book with an empty file"""
