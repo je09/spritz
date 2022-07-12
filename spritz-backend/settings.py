@@ -3,6 +3,7 @@ from os import getenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 MEDIA_ROOT = Path.joinpath(BASE_DIR, Path("media"))
+STATIC_ROOT = Path.joinpath(BASE_DIR, Path("static"))
 
 SECRET_KEY = getenv("SECRET")
 DEBUG = True
