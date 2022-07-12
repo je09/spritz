@@ -36,11 +36,14 @@ class TestLibraryModelViewSet(TestCase):
 
         # Create few books linked to the first user
         Book.objects.create(vk_id=User.objects.get(vk_id=123123213),
-                            title="Kafka on the Shore", author="Haruki Murakami", )
+                            title="Kafka on the Shore", author="Haruki Murakami",
+                            pages=450, words=225000, )
         Book.objects.create(vk_id=User.objects.get(vk_id=123123213),
-                            title="The Old Man and the Sea", author="Ernest Hemingway", )
+                            title="The Old Man and the Sea", author="Ernest Hemingway",
+                            pages=250, words=25000, )
         Book.objects.create(vk_id=User.objects.get(vk_id=123123213),
-                            title="The Trial", author="Kafka Franz", )
+                            title="The Trial", author="Kafka Franz",
+                            pages=500, words=229000, )
 
     def test_get(self):
         """Get book correctly"""
@@ -139,11 +142,14 @@ class TestStatisticsModelViewSet(TestCase):
 
         # Create few books linked to the first user
         Book.objects.create(vk_id=User.objects.get(vk_id=123123213),
-                            title="Kafka on the Shore", author="Haruki Murakami", )
+                            title="Kafka on the Shore", author="Haruki Murakami",
+                            pages=450, words=225000, )
         Book.objects.create(vk_id=User.objects.get(vk_id=123123213),
-                            title="The Old Man and the Sea", author="Ernest Hemingway", )
+                            title="The Old Man and the Sea", author="Ernest Hemingway",
+                            pages=250, words=25000, )
         Book.objects.create(vk_id=User.objects.get(vk_id=123123213),
-                            title="The Trial", author="Kafka Franz", )
+                            title="The Trial", author="Kafka Franz",
+                            pages=500, words=229000, )
 
         Statistics.objects.create(book_id=Book.objects.all().last(),
                                   percentage=1, pages_read=1, words_read=1,
