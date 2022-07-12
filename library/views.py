@@ -17,6 +17,7 @@ from library.serializers import (
     LibraryProgressModelSerializer,
     LibraryAvgProgressBaseSerializer
 )
+from users.models import User
 from library.models import (
     Book,
     Statistics
@@ -60,6 +61,13 @@ class LibraryRetrieveViewSet(
 
     def post(self, request, *args, **kwargs):
         """Send user vk_id and book file"""
+        vk_id = request.data.get('vk_id')
+        user = User.objects.filter(vk_id=vk_id)
+
+        if not user.exists():
+            user = User.objects.create(vk_id=vk_id)
+            user.save()
+
         book_serialized = BookCreateSerializer(data=request.data)
         if not book_serialized.is_valid():
             return Response(BookViewSerializer(None).data, status=status.HTTP_204_NO_CONTENT)
