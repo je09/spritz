@@ -10,7 +10,8 @@ from library.models import (
 )
 from library.serializers import (
     BookViewSerializer,
-    LibraryProgressModelSerializer
+    LibraryProgressModelSerializer,
+    LibraryAvgProgressBaseSerializer
 )
 from users.models import User
 
@@ -45,7 +46,7 @@ class TestLibraryModelViewSet(TestCase):
         """Get book correctly"""
 
         book = Book.objects.all().first()
-        book_serialization = BookViewSerializer(book)
+        book_serialization = BookViewSerializer(book, context={'page': 1})
         response = client.get(reverse('api_library:library_list_control'), data={'book_id': book.unique_id, 'page': 1})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -154,9 +155,10 @@ class TestStatisticsModelViewSet(TestCase):
         data = {
             'book_id': book.unique_id,
             'vk_id': book.vk_id_id,
-            'pages': 1,
-            'words': 1,
-            'average_speed': 1
+            'pages_read': 1,
+            'words_read': 1,
+            'percentage': 1.0,
+            'average_speed': 1.0
         }
         request = client.put(reverse('api_library:library_stat_control'),
                              content_type=CONTENT_TYPE_JSON_APPLICATION,
@@ -169,8 +171,9 @@ class TestStatisticsModelViewSet(TestCase):
         data = {
             'book_id': book.unique_id,
             'vk_id': book.vk_id_id,
-            'pages': 1,
-            'words': 1,
+            'pages_read': 1,
+            'words_read': 1,
+            'percentage': 1.0,
             'average_speed': 1
         }
         request = client.put(reverse('api_library:library_stat_control'),
@@ -183,20 +186,21 @@ class TestStatisticsModelViewSet(TestCase):
         data = {
             'book_id': RANDOM_UUID,
             'vk_id': 901283092,  # VK_ID may be random here as well
-            'pages': 1,
-            'words': 1,
-            'average_speed': 1
+            'pages_read': 1,
+            'words_read': 1,
+            'percentage': 1.0,
+            'average_speed': 1.0
         }
         request = client.put(reverse('api_library:library_stat_control'),
                              content_type=CONTENT_TYPE_JSON_APPLICATION,
                              data=data)
-        self.assertEqual(request.status_code, status.HTTP_200_OK)
+        self.assertEqual(request.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_get_stat(self):
         """Get all the user stat"""
         user_stat = Statistics.objects.all().first()
-        vk_id = Book.objects.all().filter(unique_id=user_stat.book_id.unique_id).first().vk_id_id
-        user_stat_serialized = LibraryProgressModelSerializer(user_stat)
+        vk_id = Book.objects.all().filter(unique_id=user_stat.book_id.unique_id).first().vk_id.vk_id
+        user_stat_serialized = LibraryAvgProgressBaseSerializer({'vk_id': vk_id})
 
         request = client.get(reverse('api_library:library_stat_control'),
                              content_type=CONTENT_TYPE_JSON_APPLICATION,
@@ -221,7 +225,6 @@ class TestStatisticsModelViewSet(TestCase):
         """Get book stat with wrong book_id"""
         user_stat = Statistics.objects.all().first()
         vk_id = Book.objects.all().filter(unique_id=user_stat.book_id.unique_id).first().vk_id_id
-        user_stat_serialized = LibraryProgressModelSerializer(user_stat)
 
         request = client.get(reverse('api_library:library_stat_control'),
                              content_type=CONTENT_TYPE_JSON_APPLICATION,
