@@ -4,7 +4,10 @@ from django.db.models import (
     Q
 )
 from rest_framework import serializers
-from library.models import Book
+from library.models import (
+    Book,
+    Statistics
+)
 from library.services import EpubParser
 
 
@@ -99,7 +102,28 @@ class BookCreateSerializer(serializers.ModelSerializer):
             'author': {'read_only': True},
         }
 
+
 class LibraryProgressModelSerializer(serializers.ModelSerializer):
+    book_id = serializers.SlugRelatedField(slug_field='unique_id', queryset=Book.objects.all())
 
     class Meta:
-        fields = ()
+        model = Statistics
+        fields = ('book_id', 'pages_read', 'words_read', 'percentage', 'average_speed')
+
+
+class LibraryAvgProgressBaseSerializer(serializers.BaseSerializer):
+    def to_representation(self, instance):
+        books = Book.objects.all().filter(vk_id=instance['vk_id']).all()
+        stat = Statistics.objects.all().filter(book_id__in=books).aggregate(
+            Avg('percentage'),
+            Avg('pages_read'),
+            Avg('words_read'),
+            Avg('average_speed')
+        )
+
+        return {
+            'pages_read': stat['pages_read__avg'],
+            'words_read': stat['words_read__avg'],
+            'percentage': stat['percentage__avg'],
+            'average_speed': stat['average_speed__avg'],
+        }
