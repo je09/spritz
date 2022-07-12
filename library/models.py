@@ -33,12 +33,13 @@ class Book(models.Model):
 
     class Meta:
         ordering = ['edited']
+        unique_together = ('title', 'author', 'vk_id')
 
 
 class Statistics(models.Model):
     """Describes Statistics of book reading"""
 
-    book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
+    book_id = models.OneToOneField(Book, on_delete=models.CASCADE, primary_key=True)
     percentage = models.FloatField(max_length=4)
     pages_read = models.IntegerField()
     words_read = models.IntegerField()
