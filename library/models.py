@@ -20,6 +20,8 @@ class Book(models.Model):
     unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     title = models.CharField(max_length=256)
     author = models.CharField(max_length=256)
+    pages = models.IntegerField()
+    words = models.IntegerField()
     file = models.FileField(upload_to=upload_to)
     edited = models.DateTimeField()
 
