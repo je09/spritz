@@ -48,7 +48,6 @@ class BookViewSerializer(serializers.ModelSerializer):
 
         return text, page, pages, words
 
-
     def _extension(self, file_name):
         return os.path.splitext(file_name)
 
@@ -78,6 +77,8 @@ class BookCreateSerializer(serializers.ModelSerializer):
     file = serializers.FileField(required=True, write_only=True)
     title = serializers.CharField(max_length=256)
     author = serializers.CharField(max_length=256)
+    pages = serializers.IntegerField()
+    words = serializers.IntegerField()
 
     def to_internal_value(self, data):
         if 'file' not in data or not data['file']:
@@ -85,18 +86,22 @@ class BookCreateSerializer(serializers.ModelSerializer):
 
         if data['file'].content_type == EPUB_EXTENSION:
             path = data['file'].temporary_file_path()
-            book = EpubParser(path, parse_text=False)
+            book = EpubParser(path, parse_text=True)
             data['title'] = book.title
             data['author'] = book.author
+            data['pages'] = len(book)
+            data['words'] = book.total_words()
 
         return super().to_internal_value(data)
 
     class Meta:
         model = Book
-        fields = ('unique_id', 'vk_id', 'file', 'title', 'author')
+        fields = ('unique_id', 'vk_id', 'file', 'title', 'author', 'pages', 'words')
         extra_kwargs = {
             'file': {'write_only': True},
             'vk_id': {'write_only': True},
+            'pages': {'write_only': True},
+            'words': {'write_only': True},
             'unique_id': {'read_only': True},
             'title': {'read_only': True},
             'author': {'read_only': True},
