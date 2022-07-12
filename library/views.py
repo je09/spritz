@@ -10,9 +10,14 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from library.serializers import (
     BookViewSerializer,
-    BookCreateSerializer
+    BookCreateSerializer,
+    LibraryProgressModelSerializer,
+    LibraryAvgProgressBaseSerializer
 )
-from library.models import Book
+from library.models import (
+    Book,
+    Statistics
+)
 
 
 class LibraryRetrieveViewSet(
@@ -29,13 +34,16 @@ class LibraryRetrieveViewSet(
     """
     authentication_classes = []
     permission_classes = []
+    serializer_class = BookViewSerializer
 
     allowed_methods = ('GET', 'POST', 'DELETE')
 
     def get(self, request: Request, *args, **kwargs):
         """Get book details and text by submitting book_id and page"""
         # Can't use values() or items() because params might not be in request.
-        # TODO: UUID error
+        # TODO: add vk_id to make sure the right params are sent
+        # TODO: Check for valid type
+        # TODO: move logic to serializer. use BaseSerializer if required.
         book_id, page = request.query_params.get('book_id'), request.query_params.get('page')
         if not book_id or not page:
             return Response(BookViewSerializer(None).data, status=status.HTTP_400_BAD_REQUEST)
@@ -44,8 +52,7 @@ class LibraryRetrieveViewSet(
         if not queryset.exists():
             return Response(BookViewSerializer(None).data, status=status.HTTP_204_NO_CONTENT)
 
-        # TODO: Pagination and async magic in serializer.
-        serializer = BookViewSerializer(queryset.first(), partial=True)
+        serializer = BookViewSerializer(queryset.first(), partial=True, context={'page': page})
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
@@ -60,6 +67,7 @@ class LibraryRetrieveViewSet(
 
     def delete(self, request: Request, *args, **kwargs):
         """Delete book by book_id"""
+        # TODO: add vk_id to make sure the right params are sent
         book_id = request.data.get('book_id')
         if not book_id:
             return Response(BookViewSerializer(None).data, status=status.HTTP_204_NO_CONTENT)
