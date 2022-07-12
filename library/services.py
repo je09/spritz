@@ -1,3 +1,4 @@
+import re
 from ebooklib import epub
 from ebooklib.epub import EpubBook
 from bs4 import BeautifulSoup
@@ -22,7 +23,7 @@ class BookParser:
         if parse_text:
             self._parse_text()
 
-    def get_page(self, page: int = 1) -> str:
+    def get_page(self, page: int = 1) -> (str, int):
         """
         Get text by page.
         Return an empty string if page doesn't exist.
@@ -34,11 +35,26 @@ class BookParser:
         if page not in range(0, len(self._pages)):
             return ''
 
-        return self._pages[page]
+        return self._pages[page], self._count_words(page)
 
     def is_empty(self) -> bool:
         """Check if book is empty"""
         return not bool(self._pages)
+
+    def total_words(self) -> int:
+        """Amount of words in a book"""
+        words = 0
+
+        for i in range(0, len(self._pages)):
+            words += self._count_words(i)
+
+        return words
+
+    def _count_words(self, page):
+        """Count words on the given page"""
+        # Assuming that there is only single space between words.
+        # The last space isn't saved with a page, that's why we increment it.
+        return self._pages[page].count(' ') + 1
 
     def _parse_meta(self):
         """Parse META data"""
@@ -105,8 +121,12 @@ class EpubParser(BookParser):
             # I didn't find any other way to check item for the chapter
             if hasattr(item, '_template_name') and item._template_name == 'chapter':
                 soup = BeautifulSoup(item.get_body_content(), 'html.parser')
-                text = soup.get_text()
-                text_buffer += f'{text}'.rstrip()
+                # hey, I use regex here, so it may be a bit slow.
+                # make every new line single spaced.
+                # make multiple spaces into one.
+                text = re.sub('((\n|\s)+)', ' ', soup.get_text())
+                # remove escape sequnces.
+                text_buffer += re.sub('(\r|\t|\v)', '', text).strip()
                 page, text_buffer = self._splitter(text_buffer)
 
         # Write remains and clear the buffer
