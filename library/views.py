@@ -1,8 +1,11 @@
-from django.http import QueryDict
+from django.db.models import (
+    Q
+)
 from rest_framework.generics import (
     RetrieveAPIView,
     CreateAPIView,
-    DestroyAPIView
+    DestroyAPIView,
+    UpdateAPIView,
 )
 
 from rest_framework import status
@@ -78,3 +81,50 @@ class LibraryRetrieveViewSet(
 
         book.delete()
         return Response(BookViewSerializer(None).data, status=status.HTTP_200_OK)
+
+
+class StatisticsViewSet(
+    RetrieveAPIView,
+    UpdateAPIView
+):
+    """
+    User statistics
+
+    GET – get all the user stat: pages read, words read, average speed reed
+    GET with book_id param – get stat about specific book
+    PUT with book_id - update stat about specific book
+    """
+    def get(self, request: Request, *args, **kwargs):
+        vk_id = request.query_params.get('vk_id')
+        if not vk_id:
+            return Response(LibraryProgressModelSerializer(None).data,
+                            status=status.HTTP_204_NO_CONTENT)
+
+        book_id = request.query_params.get('book_id')
+        if not book_id:
+            # return average stat of user reading
+            return Response(LibraryAvgProgressBaseSerializer(request.query_params).data)
+
+        # TODO: serializer validation. error during invalid token.
+        # check if the book really belongs to the user
+        book = Book.objects.all().filter(Q(vk_id=vk_id) & Q(unique_id=book_id))
+        if not book.exists():
+            return Response(LibraryProgressModelSerializer(None).data, status=status.HTTP_204_NO_CONTENT)
+
+        stat = Statistics.objects.all().filter(book_id=book.first()).first()
+
+        return Response(LibraryProgressModelSerializer(stat).data)
+
+    def put(self, request, *args, **kwargs):
+        # TODO: Doesn't work, fix late. Update tests.
+        vk_id, book_id = request.data.get('vk_id'), request.data.get('book_id')
+        if not vk_id or not book_id:
+            return Response(LibraryProgressModelSerializer(None).data, status=status.HTTP_204_NO_CONTENT)
+
+        stat_serialized = LibraryProgressModelSerializer(data=request.data)
+        if not stat_serialized.is_valid():
+            return Response(LibraryProgressModelSerializer(None).data, status=status.HTTP_204_NO_CONTENT)
+
+        stat_serialized.save()
+
+        return Response(stat_serialized.data, status=status.HTTP_200_OK)
