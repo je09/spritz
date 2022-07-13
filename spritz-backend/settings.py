@@ -5,6 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 MEDIA_ROOT = Path.joinpath(BASE_DIR, Path("media"))
 
 SECRET_KEY = getenv("SECRET")
+VK_SECRET = getenv("VK_SECRET")
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
@@ -34,6 +35,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'spritz-backend.middleware.VKStartParamParserMiddleware'
 ]
 
 ROOT_URLCONF = 'spritz-backend.urls'
