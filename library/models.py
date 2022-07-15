@@ -1,4 +1,5 @@
 import uuid
+from itertools import chain
 from django.db import models
 from users.models import User
 
@@ -43,6 +44,16 @@ class Bookshelf(models.Model):
         librarian = User.objects.filter(vk_id=0).first()
         self.objects.create(public=True, user=librarian)
         self.save()
+
+    def get_all(self):
+        if self.public:
+            return Book.objects.filter(public=True).all()
+
+        private = Book.objects.filter(shelf=self).all()
+        borrowed_books = LibrarianJournal.objects.filter(user_shelf=self).all().values_list('borrowed_book__unique_id', flat=True)
+        public = Book.objects.filter(unique_id__in=borrowed_books)
+
+        return list(chain(private, public))
 
     def __str__(self):
         if str(self.user) == 'Librarian':
