@@ -6,7 +6,11 @@ class User(models.Model):
     created = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'{self.vk_id}'
+        # Librarian
+        if self.vk_id == 0:
+            return 'Librarian'
+
+        return f'User: {self.vk_id}'
 
     class Meta:
         ordering = ['created']
