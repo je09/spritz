@@ -1,5 +1,4 @@
 from rest_framework.generics import RetrieveAPIView
-from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework import exceptions
 from users.serializers import UserSerializer
@@ -26,9 +25,6 @@ class UserListAPIView(RetrieveAPIView):
         """
 
         vk_id = request.META.get('vk_user_id')
-        if not vk_id:
-            raise exceptions.PermissionDenied
-
         self.queryset.filter(vk_id=vk_id)
         if not self.queryset.filter(vk_id=vk_id).exists():
             raise exceptions.NotFound
