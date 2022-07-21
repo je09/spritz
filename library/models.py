@@ -27,7 +27,7 @@ class Bookshelf(models.Model):
     """
 
     unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    public = models.BooleanField(null=False)
+    public = models.BooleanField(null=False, default=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def save(
@@ -83,6 +83,7 @@ class Book(models.Model):
     "Librarian" public bookshelf
     """
 
+    # TODO: add image, image-256.
     unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     shelf = models.ForeignKey('Bookshelf', on_delete=models.CASCADE)
     title = models.CharField(max_length=256)
@@ -91,7 +92,7 @@ class Book(models.Model):
     pages = models.IntegerField()
     words = models.IntegerField()
     file = models.FileField(upload_to=upload_to)
-    public = models.BooleanField(null=False)
+    public = models.BooleanField(null=False, default=False)
     edited = models.DateTimeField(auto_now=True)
 
     def save(
